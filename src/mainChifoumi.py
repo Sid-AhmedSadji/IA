@@ -340,27 +340,30 @@ def main():
     # le joueur va rejoindre le joueur 0 en évitant tous les items
     #-------------------------------
                 
-        potion_et_citrouille = items_placed[1] + items_placed[2]
-        tmpFlamme = []
-        champsDeVision = 3
+        flamme_et_potion_et_citrouille = items_placed[0]+items_placed[1] + items_placed[2]
+        posJoueur0 = ()
+        champsDeVision = 1
         g =np.zeros((nbLignes,nbCols),dtype=bool)    # une matrice remplie par defaut a False  
 
         for i in range(posPlayers[1][0]-champsDeVision,posPlayers[1][0]+champsDeVision):
             for j in range(posPlayers[1][1]-champsDeVision,posPlayers[1][1]+champsDeVision):
                 g[max(min(i,nbLignes-1),0)][max(min(j,nbCols-1),0)]=True
 
-        #met a false les case de g qui sont des potion_et_citrouille
-        for i in range(len(potion_et_citrouille)):
-            g[potion_et_citrouille[i].get_rowcol()[0]][potion_et_citrouille[i].get_rowcol()[1]]=False
+        #met a false les case de g qui sont des items
+        for i in range(len(flamme_et_potion_et_citrouille)):
+            g[flamme_et_potion_et_citrouille[i].get_rowcol()[0]][flamme_et_potion_et_citrouille[i].get_rowcol()[1]]=False
 
-        #parcour les flammes et verifie que la case g est true pour chaque item
+        #Verifie qui voit la position du joueur 
         for i in range(len(items_placed[0])):
-            if g[items_placed[0][i].get_rowcol()[0]][items_placed[0][i].get_rowcol()[1]]==True:
-                tmpFlamme.append(items_placed[0][i].get_rowcol())
+            if g[posPlayers[0][0]][posPlayers[0][1]]==True:
+                posJoueur0 = posPlayers[0]
 
 
-        if(tmpFlamme!=[]):
-            p = ProblemeGrid2D(posPlayers[1],tmpFlamme[0] ,g,'manhattan')
+        if(posJoueur0 != ()):
+            p = ProblemeGrid2D(posPlayers[1],posJoueur0 ,g,'manhattan')
+            if path == []:
+                path = probleme.astar(p, verbose=False)
+                print("Chemin trouvé:", path)
             if path == []:
                 path = probleme.astar(p, verbose=False)
                 print("Chemin trouvé:", path)
@@ -397,7 +400,13 @@ def main():
                 x_inc,y_inc = random.choice([(0,1),(0,-1),(1,0),(-1,0)])
                 next_row = row1+x_inc
                 next_col = col1+y_inc
-                if legal_move_position((next_row,next_col)):
+                isEmptyCase = True
+                #verifie que la position next_row,next_col n'est pas un item
+                for obj in flamme_et_potion_et_citrouille:
+                    print(" OBJ ",obj.get_rowcol(),(next_row,next_col))
+                    if (next_row,next_col) == obj.get_rowcol():
+                        isEmptyCase = False
+                if isEmptyCase and legal_move_position((next_row,next_col)):
                     break
             players[1].set_rowcol(next_row,next_col)
             print ("pos 1:", next_row,next_col)
